@@ -1,15 +1,17 @@
 # Test SSH Tunnels
 
-SSH Tunnels: Local and Remote Port Forwardingについて、説明する。
+Let me share about **SSH Tunnels: Local and Remote port forwarding** 😋.
+
+<br></br>
 
 ## Prerequisites
 
-以下環境を構築する。
+Prepare the following environment.
 
 * Local machine: Local PC
 * Remote machine: Docker container 
 
-Build & Run container.
+Build and run container as Remote machine.
 
 ```
 docker buildx build -t remote:latest .
@@ -19,9 +21,7 @@ docker buildx build -t remote:latest .
 docker run -d --rm --name remote -e PORT=80 -v $HOME/.ssh:/tmp/ssh remote:latest
 ```
 
-Check if ssh connection can be established between the client(local) and the server(Container).
-
-Docker containerをシェル変数：`REMOTE_IP`として定義します。
+Define the ip address of container as `REMOTE_IP`.
 
 ```
 REMOTE_IP=$(
@@ -31,7 +31,7 @@ REMOTE_IP=$(
 )
 ```
 
-Client: Local PCから、Server: Docker containerにsshコマンドでアクセスできることを確認する。
+Check if ssh connection can be established between local machine and remote machine by running the following command on Local machine.
 
 ```
 ssh root@$REMOTE_IP
@@ -41,39 +41,40 @@ ssh root@$REMOTE_IP
 
 ## Local Port forwarding
 
-* SSHトンネルを経由して、リモートマシンとの間でセキュアに暗号化された通信が行われます。
-* Local machineのローカルポートへのトラフィックを、Remote machineのリモートポートへ転送します。
-* 例えば、Remote環境のweb serverへLocal machineからアクセスできるようにすることが可能です。
+The traffic encryped by ssh protcol to the port of the local machine can be forwarded to the port of the remote machine over the ssh tunnel securely.
 
-上記のPrrerequisitesの実行した場合、今の状態は以下である。
+For example, the web server on the remote machine can be accessible from the local machine by the local port forwarding.
+
+We can see the following state after setting the above prerequisites.
 
 <div align="center">
-<img src="./ssh1.svg">
+<img src="./images/ssh1.svg">
+<p>Fig.</p>
 </div>
 
-* Remote machineには、Remote machine内のlocalhost:80からアクセスできるweb serverがある。もちろん、Local machineからはアクセスできない。
-* Local machineからremote machineへはsshでアクセスできる。= 通信を暗号化する安全なssh tunnelを確立できる。
+The web server which listens on `localhost:80` is on the remote machine. It can be accessible in the remote machine, but ofcourse can't be accessible from the local machine.
 
-Local Port forwardingを実行するには、以下コマンドをLocal machine上で実行する必要がある。
+For forwarding the local port, run the following command on the local machine.
 
 ```
 ssh -L localhost:8080:localhost:80 root@$REMOTE_IP
 ```
 
-このコマンドは、local machineのlocalhost:8080へのtrafficeをremote machineのlocalhost:80にforwardすることを意味する。
+This command means that the traffic to `localhost:8080` on the local machine is forwarded to `localhost:80` on the remote machine.
 
 * `-L`: specifies that connections to the given TCP port on the local host are to be forwarded to the given host and port on the remote side.
 * `localhost:8080:localhost:80` = (`local address:remote address`)
   * local address tells ssh client where to start listening.
   * remote address tells sshd server where to forward traffic to.
 
-Local machineのlocalhost:8080にアクセス(`curl localhost:8080`)すると、Remote machineの`localhost:80`にアクセスできる。
-
 <div align="center">
-<img src="./ssh2.svg">
+<img src="./images/ssh2.svg">
+<p>Fig. Localhost port forwarding.</p>
 </div>
 
-`ss`コマンドによって、ssh clientが、`localhost:8080`でLISTENしていることが確認できる。
+We can access `localhost:8080` on the local machine which's forwarded to the `localhost:80` on the remote machine by running `curl localhost:8080` on the local machine.
+
+Running the following `ss` command proves that the ssh client listens on `localhost:8080`.
 
 ```
 $ ss -nlp | grep 8080
@@ -81,89 +82,92 @@ tcp   LISTEN 0    128    127.0.0.1:8080  0.0.0.0:*    users:(("ssh",pid=368307,f
 tcp   LISTEN 0    128    [::1]:8080      [::]:*       users:(("ssh",pid=368307,fd=4))  
 ```
 
-Local Machineのloopback addressだけでなく、他のinterfaceのIP addressをport fowardingすることも可能である。
+Not only the port of the loopback address(`localhost`) but also the port of the IP addresses on the other interfaces on the local machine can be forwarded as shown below.
 
 ```
 ssh -L 192.168.11.2:8080:localhost:80 root@$REMOTE_IP
 ```
 
 <div align="center">
-<img src="./ssh3.svg">
+<img src="./images/ssh3.svg">
+<p>Fig. Localhost port forwarding 2.</p>
 </div>
 
-* -gオプションの説明
+<br></br>
 
------
-Background
---
+<div style="border: 1px dashed rgba(39, 245, 245, 0.8); padding: 10px;">
+
+**Background:**
 
 Use `ssh -f -N -L` to run the port-forwarding session in the background.
 
 * `-f`: Requests ssh to go to background just before command execution.
 * `-N`: Do not execute a remote command.  This is useful for just forwarding ports.
------
+
+</div>
 
 <br></br>
 
 ## Remote Port forwarding
 
-* SSHトンネルを経由して、リモートマシンとの間でセキュアに暗号化された通信が行われます。
-* Remote machineのローカルポートへのトラフィックを、Local machineのローカルポートへ転送します。
-* 例えば、Local環境のweb serverへRemote machineからアクセスできるようにすることが可能です。
+The traffic encryped by ssh protcol to the port of the remote machine can be forwarded to the port of the local machine over the ssh tunnel securely.
 
-Local machineにおいて、web serverをlocalhost:80で公開する。
+For example, the web server on the local machine can be accessible from the remote machine by the local port forwarding.
+
+We prepare the web server which listens on `localhost:80` on the local machine by running the following command on the local machine.
 
 ```
 sudo python3 -m http.server --bind 127.0.0.1 80 &
 ```
 
 <div align="center">
-<img src="./ssh4.svg">
+<img src="./images/ssh4.svg">
+<p>Fig.</p>
 </div>
 
-* Local Local machine内のlocalhost:80からアクセスできるweb serverがある。もちろん、Remote machineからはアクセスできない。
-* Local machineからremote machineへはsshでアクセスできる。= 通信を暗号化する安全なssh tunnelを確立できる。
+The web server which listens on `localhost:80` is on the local machine. It can be accessible in the local machine, but ofcourse can't be accessible from the remote machine.
 
-Remote Port forwardingを実行するには、以下コマンドをLocal machine上で実行する必要がある。
+For forwarding the remote port, run the following command on the local machine.
 
 ```
 ssh -R localhost:8080:localhost:80 root@$REMOTE_IP
 ```
 
-このコマンドは、Remote machineのlocalhost:8080へのtrafficをlocal machineのlocalhost:80にforwardすることを意味する。
+This command means that the traffic to `localhost:80` on the remote machine is forwarded to `localhost:8080` on the local machine.
 
-* `-R`: 
+* `-R`: Specifies that connections to the given TCP port on the remote host are to be forwarded to the local side.
 * `localhost:8080:localhost:80` = (`remote address:local address`)
   * remote address tells sshd server where to start listening.
-  * local address  tells ssh client where to forward traffic to.
-
-Remote machineのlocalhost:8080にアクセス(`curl localhost:8080`)と、Local machineの`localhost:80`にアクセスできる。
+  * local address tells ssh client where to forward traffic to.
 
 <div align="center">
-<img src="./ssh5.svg">
+<img src="./images/ssh5.svg">
+<p>Fig. Remote port forwarding.</p>
 </div>
 
-Remote machineのloopback addressだけでなく、他のinterfaceのIP addressをport fowardingすることも可能である。
+We can access `localhost:8080` on the remote machine which's forwarded to the `localhost:80` on the local machine by running `curl localhost:8080` on the remote machine.
+
+Not only the port of the loopback address(`localhost`) but also the port of the IP addresses on the other interfaces on the remote machine can be forwarded as shown below.
 
 ```
 ssh -R $REMOTE_IP:8080:localhost:80 root@$REMOTE_IP
 ```
 
 <div align="center">
-<img src="./ssh6.svg">
+<img src="./images/ssh6.svg">
+<p>Fig. Remote port forwarding 2.</p>
 </div>
 
-Remote Machineの$REMOTE_IPへのアクセス(`curl $REMOTE_IP:8080`)が可能である。
+To forward the port of the non-loopback address like the `$REMOTE_IP`, we need to set `GatewayPorts yes` in `/etc/ssh/sshd_config` in the remote machine. If not so, the port of the loopback address can be automatically forwarded.
 
-ただし、Remote machine内の`/etc/ssh/sshd_config`の`GatewayPorts yes`としないと、自動的にlocalhostが転送対象とされてしまうので注意が必要である。
+<br></br>
 
------
-GatewayPorts (man sshd_config)
---
+<div style="border: 1px dashed rgba(39, 245, 245, 0.8); padding: 10px;">
+
+**GatewayPorts (man sshd_config)**
 
 By default, sshd(8) binds remote port forwardings to the loopback address. This prevents other remote hosts from connecting to forwarded ports. GatewayPorts can be used to specify that sshd should allow remote port forwardings to bind to non-loopback addresses, thus allowing other hosts to connect.
-
------
+</div>
 
 <br></br>
 
