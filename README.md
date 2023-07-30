@@ -2,6 +2,8 @@
 
 Let me share about **SSH Tunnels: Local and Remote port forwarding** 😋.
 
+Table of contents
+
 * [Prerequisites](#prerequisites)
 * [Local Port forwarding](#local-port-forwarding)
 * [Remote Port forwarding](#remote-port-forwarding)
@@ -99,7 +101,7 @@ ssh -L 192.168.11.2:8080:localhost:80 root@$REMOTE_IP
 
 <br></br>
 
-<div style="border: 1px dashed rgba(39, 245, 245, 0.8); padding: 10px;">
+-----------------------
 
 **Background:**
 
@@ -108,7 +110,7 @@ Use `ssh -f -N -L` to run the port-forwarding session in the background.
 * `-f`: Requests ssh to go to background just before command execution.
 * `-N`: Do not execute a remote command.  This is useful for just forwarding ports.
 
-</div>
+-----------------------
 
 <br></br>
 
@@ -166,15 +168,24 @@ To forward the port of the non-loopback address like the `$REMOTE_IP`, we need t
 
 <br></br>
 
-<div style="border: 1px dashed rgba(39, 245, 245, 0.8); padding: 10px;">
+-----------------------
 
-**GatewayPorts (man sshd_config)**
+**GatewayPorts (man sshd_config):**
 
 By default, sshd(8) binds remote port forwardings to the loopback address. This prevents other remote hosts from connecting to forwarded ports. GatewayPorts can be used to specify that sshd should allow remote port forwardings to bind to non-loopback addresses, thus allowing other hosts to connect.
-</div>
+
+-----------------------
 
 <br></br>
 
 ## _References_
 
 * [A Visual Guide to SSH Tunnels: Local and Remote Port Forwarding](https://iximiuz.com/en/posts/ssh-tunnels/)
+
+<br>
+
+<div align="center">
+
+**[`^        back to top        ^`](#ssh-tunnels)**
+
+</div>
