@@ -1,6 +1,10 @@
-# Test SSH Tunnels
+# SSH Tunnels
 
 Let me share about **SSH Tunnels: Local and Remote port forwarding** 😋.
+
+* [Prerequisites](#prerequisites)
+* [Local Port forwarding](#local-port-forwarding)
+* [Remote Port forwarding](#remote-port-forwarding)
 
 <br></br>
 
@@ -39,7 +43,7 @@ ssh root@$REMOTE_IP
 
 <br></br>
 
-## Local Port forwarding
+## Local port forwarding
 
 The traffic encryped by ssh protcol to the port of the local machine can be forwarded to the port of the remote machine over the ssh tunnel securely.
 
@@ -108,7 +112,7 @@ Use `ssh -f -N -L` to run the port-forwarding session in the background.
 
 <br></br>
 
-## Remote Port forwarding
+## Remote port forwarding
 
 The traffic encryped by ssh protcol to the port of the remote machine can be forwarded to the port of the local machine over the ssh tunnel securely.
 
